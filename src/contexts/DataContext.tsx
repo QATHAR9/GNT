@@ -37,6 +37,7 @@ type DataContextType = {
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   addSale: (sale: Omit<Sale, 'id' | 'date'>) => Promise<void>;
   addStockEntry: (entry: Omit<StockEntry, 'id' | 'date'>) => Promise<void>;
+  addStock: (productId: string, quantity: number, addedBy: string) => Promise<void>; // ✅ NEW
 };
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -81,7 +82,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Add functions
   const addProduct = async (product: Omit<Product, 'id'>) => {
     const { error } = await supabase.from('products').insert(product);
     if (!error) fetchProducts();
@@ -106,9 +106,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     else console.error('Error adding stock entry:', error);
   };
 
+  // ✅ New unified function
+  const addStock = async (productId: string, quantity: number, addedBy: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) throw new Error('Product not found');
+
+    // 1. Add stock entry
+    const { error: entryError } = await supabase.from('stock_entries').insert({
+      product_name: product.name,
+      quantity,
+      added_by: addedBy,
+      date: new Date().toISOString()
+    });
+    if (entryError) throw entryError;
+
+    // 2. Update product stock
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({ stock: product.stock + quantity })
+      .eq('id', productId);
+    if (updateError) throw updateError;
+
+    // 3. Refresh state
+    await fetchProducts();
+    await fetchStockEntries();
+  };
+
   return (
     <DataContext.Provider
-      value={{ products, sales, stockEntries, addProduct, addSale, addStockEntry }}
+      value={{
+        products,
+        sales,
+        stockEntries,
+        addProduct,
+        addSale,
+        addStockEntry,
+        addStock
+      }}
     >
       {children}
     </DataContext.Provider>
