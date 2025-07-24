@@ -5,9 +5,8 @@ import { Store, User, Lock, LogIn } from 'lucide-react';
 const Login: React.FC = () => {
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    role: 'admin' as 'admin' | 'sales'
+    email: '',
+    password: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,21 +16,12 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    const success = login(formData.username, formData.password, formData.role);
-    
+    const success = await login(formData.email, formData.password);
     if (!success) {
-      setError('Invalid credentials. Please check your username, password, and role.');
+      setError('Invalid credentials. Please check your email and password.');
     }
-    
-    setIsLoading(false);
-  };
 
-  const handleDemoLogin = (role: 'admin' | 'sales') => {
-    setFormData({
-      username: role,
-      password: role === 'admin' ? 'admin123' : 'sales123',
-      role
-    });
+    setIsLoading(false);
   };
 
   return (
@@ -55,53 +45,20 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            {/* Role Selection */}
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Select Role
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, role: 'admin' }))}
-                  className={`p-3 rounded-lg border-2 text-center transition-all ${
-                    formData.role === 'admin'
-                      ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}
-                >
-                  <User className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm font-medium">Admin</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, role: 'sales' }))}
-                  className={`p-3 rounded-lg border-2 text-center transition-all ${
-                    formData.role === 'sales'
-                      ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}
-                >
-                  <User className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm font-medium">Sales Staff</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                Username
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                Email
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  id="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter username"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
@@ -120,7 +77,7 @@ const Login: React.FC = () => {
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter password"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
@@ -142,27 +99,6 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-gray-800">
-            <p className="text-sm text-gray-400 text-center mb-4">Demo Credentials:</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleDemoLogin('admin')}
-                className="p-3 bg-gray-800 rounded-lg text-center hover:bg-gray-700 transition-colors"
-              >
-                <div className="text-sm font-medium text-orange-400">Admin Demo</div>
-                <div className="text-xs text-gray-400 mt-1">admin / admin123</div>
-              </button>
-              <button
-                onClick={() => handleDemoLogin('sales')}
-                className="p-3 bg-gray-800 rounded-lg text-center hover:bg-gray-700 transition-colors"
-              >
-                <div className="text-sm font-medium text-blue-400">Sales Demo</div>
-                <div className="text-xs text-gray-400 mt-1">sales / sales123</div>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
