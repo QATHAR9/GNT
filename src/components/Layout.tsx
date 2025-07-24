@@ -1,16 +1,17 @@
 import React, { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  BarChart3, 
-  Tags, 
-  Plus, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  BarChart3,
+  Tags,
+  Plus,
   TrendingUp,
   LogOut,
   User,
-  Store
+  Store,
+  Table, // ✅ Added for Stock History
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -30,6 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     { id: 'sales', label: 'Sales', icon: ShoppingCart },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'categories', label: 'Categories', icon: Tags },
+    { id: 'stock-history', label: 'Stock History', icon: Table }, 
   ];
 
   const salesNavItems = [
@@ -89,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 {currentPage.replace('-', ' ')}
               </h2>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
                 <User className="h-5 w-5" />
@@ -98,7 +100,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                   {user?.role?.toUpperCase()}
                 </span>
               </div>
-              
+
               <button
                 onClick={logout}
                 className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
