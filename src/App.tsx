@@ -47,6 +47,8 @@ const AppContent: React.FC = () => {
         return user.role === 'admin' ? <Reports /> : <Dashboard />;
       case 'categories':
         return user.role === 'admin' ? <Categories /> : <Dashboard />;
+      case 'stock-history':
+        return user.role === 'admin' ? <StockEntriesTable /> : <Dashboard />;
       default:
         return <Dashboard />;
     }
