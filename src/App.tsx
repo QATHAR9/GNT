@@ -11,6 +11,7 @@ import Sales from './components/pages/Sales';
 import MakeSale from './components/pages/MakeSale';
 import Reports from './components/pages/Reports';
 import Categories from './components/pages/Categories';
+import StockEntriesTable from './components/stock/StockEntriesTable';
 
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
