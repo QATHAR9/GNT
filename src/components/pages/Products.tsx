@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { Package, Edit, Trash2, AlertTriangle, DollarSign, Download, Upload } from 'lucide-react';
+import EditProductModal from '../modals/EditProductModal';
+import { Product } from '../../types';
+
+import {
+  Package,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  DollarSign,
+  Download,
+  Upload,
+} from 'lucide-react';
 
 const Products: React.FC = () => {
   const { user } = useAuth();
@@ -9,14 +20,16 @@ const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [importing, setImporting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Get unique categories
-  const categories = [...new Set(products.map(p => p.category))];
-  
+  const categories = [...new Set(products.map((p) => p.category))];
+
   // Filter products
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -34,11 +47,7 @@ const Products: React.FC = () => {
     setImporting(true);
     try {
       const success = await importFromExcel(file);
-      if (success) {
-        alert('Products imported successfully!');
-      } else {
-        alert('Failed to import products. Please check the file format.');
-      }
+      alert(success ? 'Products imported successfully!' : 'Failed to import products.');
     } catch (error) {
       alert('Error importing file. Please try again.');
     } finally {
@@ -46,6 +55,7 @@ const Products: React.FC = () => {
       event.target.value = '';
     }
   };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -63,7 +73,7 @@ const Products: React.FC = () => {
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Filter by Category
@@ -74,8 +84,10 @@ const Products: React.FC = () => {
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
               ))}
             </select>
           </div>
@@ -100,7 +112,7 @@ const Products: React.FC = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </button>
-                  
+
                   <label className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
                     {importing ? 'Importing...' : 'Import'}
@@ -135,31 +147,29 @@ const Products: React.FC = () => {
                   Stock
                 </th>
                 {user?.role === 'admin' && (
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Buying Price (KES)
-                  </th>
-                )}
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Selling Price (KES)
-                </th>
-                {user?.role === 'admin' && (
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Profit Margin
-                  </th>
-                )}
-                {user?.role === 'admin' && (
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Buying Price (KES)
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Selling Price (KES)
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Profit Margin
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
               {filteredProducts.map((product) => {
-                const profitMargin = user?.role === 'admin' 
+                const profitMargin = user?.role === 'admin'
                   ? ((product.sellingPrice - product.buyingPrice) / product.buyingPrice * 100).toFixed(1)
-                  : 0;
-                
+                  : '0';
+
                 return (
                   <tr key={product.id} className="hover:bg-gray-900/50">
                     <td className="px-6 py-4">
@@ -175,10 +185,15 @@ const Products: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <span className={`font-medium ${
-                          product.stock < 5 ? 'text-red-400' : 
-                          product.stock < 10 ? 'text-yellow-400' : 'text-green-400'
-                        }`}>
+                        <span
+                          className={`font-medium ${
+                            product.stock < 5
+                              ? 'text-red-400'
+                              : product.stock < 10
+                              ? 'text-yellow-400'
+                              : 'text-green-400'
+                          }`}
+                        >
                           {product.stock}
                         </span>
                         {product.stock < 5 && (
@@ -187,44 +202,45 @@ const Products: React.FC = () => {
                       </div>
                     </td>
                     {user?.role === 'admin' && (
-                      <td className="px-6 py-4 text-gray-300">
-                        KES {product.buyingPrice.toLocaleString()}
-                      </td>
-                    )}
-                    <td className="px-6 py-4 text-white font-medium">
-                      KES {product.sellingPrice.toLocaleString()}
-                    </td>
-                    {user?.role === 'admin' && (
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 text-green-400 mr-1" />
-                          <span className="text-green-400 font-medium">
-                            {profitMargin}%
-                          </span>
-                        </div>
-                      </td>
-                    )}
-                    {user?.role === 'admin' && (
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button className="p-2 text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteProduct(product.id)}
-                            className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+                      <>
+                        <td className="px-6 py-4 text-gray-300">
+                          KES {product.buyingPrice.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-white font-medium">
+                          KES {product.sellingPrice.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <DollarSign className="h-4 w-4 text-green-400 mr-1" />
+                            <span className="text-green-400 font-medium">
+                              {profitMargin}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => setEditingProduct(product)}
+                              className="p-2 text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
                     )}
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          
+
           {filteredProducts.length === 0 && (
             <div className="text-center py-12 text-gray-400">
               No products found matching your criteria.
@@ -232,6 +248,14 @@ const Products: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+        />
+      )}
     </div>
   );
 };
