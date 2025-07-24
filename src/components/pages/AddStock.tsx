@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { TrendingUp, Package, Plus } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 const AddStock: React.FC = () => {
   const { user } = useAuth();
-  const { products, addStock } = useData();
+  const { products, addStockEntry } = useData(); // ✅ updated hook
   const [formData, setFormData] = useState({
     productId: '',
     quantity: ''
@@ -17,12 +18,29 @@ const AddStock: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !selectedProduct) return;
 
     setIsSubmitting(true);
 
     try {
-      addStock(formData.productId, parseInt(formData.quantity), user.name);
+      const quantityToAdd = parseInt(formData.quantity);
+
+      // ✅ 1. Add to stock_entries
+      await addStockEntry({
+        product_name: selectedProduct.name,
+        quantity: quantityToAdd,
+        added_by: user.name
+      });
+
+      // ✅ 2. Update product stock in Supabase
+      const newStock = selectedProduct.stock + quantityToAdd;
+      const { error } = await supabase
+        .from('products')
+        .update({ stock: newStock })
+        .eq('id', selectedProduct.id);
+
+      if (error) throw error;
+
       setSuccess(true);
       setFormData({ productId: '', quantity: '' });
       setTimeout(() => setSuccess(false), 3000);
